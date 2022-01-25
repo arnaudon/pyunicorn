@@ -133,82 +133,86 @@ class InterSystemRecurrenceNetwork(InteractingNetworks):
         dim = kwds.get("dim")
         tau = kwds.get("tau")
 
-        #  Check for consistency
-        if self.x.shape[1] == self.y.shape[1]:
-            #  Set silence_level
-            self.silence_level = silence_level
-            """The inverse level of verbosity of the object."""
+        if self.x.shape[1] != self.y.shape[1]:
+            raise ValueError("Both time series x and y need to have the same \
+                             dimension!")
+        #  Set silence_level
+        self.silence_level = silence_level
+        """The inverse level of verbosity of the object."""
 
-            #  Get number of nodes in subnetwork x
-            self.N_x = self.x.shape[0]
-            """Number of nodes in subnetwork x."""
+        #  Get number of nodes in subnetwork x
+        self.N_x = self.x.shape[0]
+        """Number of nodes in subnetwork x."""
 
-            #  Get number of nodes in subnetwork y
-            self.N_y = self.y.shape[0]
-            """Number of nodes in subnetwork y."""
+        #  Get number of nodes in subnetwork y
+        self.N_y = self.y.shape[0]
+        """Number of nodes in subnetwork y."""
 
-            #  Get total number of nodes of ISRN
-            self.N = self.N_x + self.N_y
-            """Total number of nodes of ISRN."""
+        #  Get total number of nodes of ISRN
+        self.N = self.N_x + self.N_y
+        """Total number of nodes of ISRN."""
 
-            #  Store type of metric
-            self.metric = metric
-            """The metric used for measuring distances in phase space."""
+        #  Store type of metric
+        self.metric = metric
+        """The metric used for measuring distances in phase space."""
 
-            #  Normalize time series
-            if normalize:
-                RecurrencePlot.normalize_time_series(self.x)
-                RecurrencePlot.normalize_time_series(self.y)
+        #  Normalize time series
+        if normalize:
+            RecurrencePlot.normalize_time_series(self.x)
+            RecurrencePlot.normalize_time_series(self.y)
 
-            #  Embed time series if required
-            self.dim = dim
-            if dim is not None and tau is not None and self.x.shape[1] == 1:
-                self.x_embedded = \
-                    RecurrencePlot.embed_time_series(self.x, dim, tau[0])
-                """The embedded time series x."""
-                self.y_embedded = \
-                    RecurrencePlot.embed_time_series(self.y, dim, tau[1])
-                """The embedded time series y."""
-            else:
-                self.x_embedded = self.x
-                self.y_embedded = self.y
+        #  Embed time series if required
+        self.dim = dim
+        if dim is not None and tau is not None and self.x.shape[1] == 1:
+            self.x_embedded = \
+                RecurrencePlot.embed_time_series(self.x, dim, tau[0])
+            """The embedded time series x."""
+            self.y_embedded = \
+                RecurrencePlot.embed_time_series(self.y, dim, tau[1])
+            """The embedded time series y."""
+        else:
+            self.x_embedded = self.x
+            self.y_embedded = self.y
 
-            #  Get threshold or recurrence rate from **kwds, construct
-            #  ISRN accordingly
-            threshold = kwds.get("threshold")
-            recurrence_rate = kwds.get("recurrence_rate")
-            self.threshold = threshold
+        #  Get threshold or recurrence rate from **kwds, construct
+        #  ISRN accordingly
+        threshold = kwds.get("threshold")
+        recurrence_rate = kwds.get("recurrence_rate")
+        self.threshold = threshold
 
-            if threshold is not None:
-                #  Calculate the ISRN using the radius of neighborhood
-                #  threshold
-                ISRM = self.set_fixed_threshold(threshold)
-            elif recurrence_rate is not None:
-                #  Calculate the ISRN using a fixed recurrence rate
-                ISRM = self.set_fixed_recurrence_rate(recurrence_rate)
-            else:
-                raise NameError("Please give either threshold or \
+        if threshold is not None:
+            #  Calculate the ISRN using the radius of neighborhood
+            #  threshold
+            ISRM = self.set_fixed_threshold(threshold)
+        elif recurrence_rate is not None:
+            #  Calculate the ISRN using a fixed recurrence rate
+            ISRM = self.set_fixed_recurrence_rate(recurrence_rate)
+        else:
+            raise NameError("Please give either threshold or \
                                 recurrence_rate to construct the joint \
                                 recurrence plot!")
 
-            InteractingNetworks.__init__(self, adjacency=ISRM, directed=False,
-                                         silence_level=self.silence_level)
-            #  No treatment of missing values yet!
-            self.missing_values = False
-
-        else:
-            raise ValueError("Both time series x and y need to have the same \
-                             dimension!")
+        InteractingNetworks.__init__(self, adjacency=ISRM, directed=False,
+                                     silence_level=self.silence_level)
+        #  No treatment of missing values yet!
+        self.missing_values = False
 
     def __str__(self):
         """
         Returns a string representation.
         """
-        return ('InterSystemRecurrenceNetwork: time series shapes %s, %s.\n'
-                'Embedding dimension %i\nThreshold %s, %s metric.\n%s') % (
-                    self.x.shape, self.y.shape, self.dim if self.dim else 0,
-                    self.threshold, self.metric,
-                    InteractingNetworks.__str__(self))
+        return (
+            'InterSystemRecurrenceNetwork: time series shapes %s, %s.\n'
+            'Embedding dimension %i\nThreshold %s, %s metric.\n%s'
+            % (
+                self.x.shape,
+                self.y.shape,
+                self.dim or 0,
+                self.threshold,
+                self.metric,
+                InteractingNetworks.__str__(self),
+            )
+        )
 
     #
     #  Service methods

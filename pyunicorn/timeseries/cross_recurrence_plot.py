@@ -166,10 +166,17 @@ class CrossRecurrencePlot(RecurrencePlot):
         """
         Returns a string representation.
         """
-        return ('CrossRecurrencePlot: time series shapes %s, %s.\n'
-                'Embedding dimension %i\nThreshold %s, %s metric') % (
-                    self.x.shape, self.y.shape, self.dim if self.dim else 0,
-                    self.threshold, self.metric)
+        return (
+            'CrossRecurrencePlot: time series shapes %s, %s.\n'
+            'Embedding dimension %i\nThreshold %s, %s metric'
+            % (
+                self.x.shape,
+                self.y.shape,
+                self.dim or 0,
+                self.threshold,
+                self.metric,
+            )
+        )
 
     #
     #  Service methods

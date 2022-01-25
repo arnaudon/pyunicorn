@@ -40,7 +40,7 @@ def ECA(EventSeriesX, EventSeriesY, delT, tau=0, ts1=None, ts2=None):
     """
 
     # Count events that cannot be coincided due to tau and delT
-    if not (tau == 0 and delT == 0):
+    if tau != 0 or delT != 0:
         # Start of EventSeriesX
         n11 = np.count_nonzero(EventSeriesX[:tau+delT])
         # End of EventSeriesX
@@ -53,14 +53,8 @@ def ECA(EventSeriesX, EventSeriesY, delT, tau=0, ts1=None, ts2=None):
         # Instantaneous coincidence
         n11, n12, n21, n22 = 0, 0, 0, 0
     # Get time indices
-    if ts1 is None:
-        e1 = np.where(EventSeriesX)[0]
-    else:
-        e1 = ts1[EventSeriesX]
-    if ts2 is None:
-        e2 = np.where(EventSeriesY)[0]
-    else:
-        e2 = ts2[EventSeriesY]
+    e1 = np.where(EventSeriesX)[0] if ts1 is None else ts1[EventSeriesX]
+    e2 = np.where(EventSeriesY)[0] if ts2 is None else ts2[EventSeriesY]
     del EventSeriesX, EventSeriesY, ts1, ts2
     # Number of events
     l1 = len(e1)

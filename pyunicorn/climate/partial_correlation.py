@@ -117,11 +117,7 @@ class PartialCorrelationClimateNetwork(TsonisClimateNetwork):
         C = np.corrcoef(anomaly.transpose()).astype("float64")
 
         #  Calculate the inverse correlation matrix
-        if np.linalg.det(C) != 0.0:
-            C_inv = np.linalg.inv(C)
-        else:
-            C_inv = np.linalg.pinv(C)
-
+        C_inv = np.linalg.inv(C) if np.linalg.det(C) != 0.0 else np.linalg.pinv(C)
         #  Clean up
         del C
 

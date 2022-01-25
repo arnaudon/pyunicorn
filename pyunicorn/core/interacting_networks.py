@@ -188,7 +188,7 @@ class InteractingNetworks(Network):
             number_cross_links = int(cross_link_density * (N1 * N2))
             print("Setting number of cross links according to "
                   "chosen link density.")
-        elif cross_link_density is None and number_cross_links is None:
+        elif number_cross_links is None:
             number_cross_links = int(cross_A.sum())
             print("Creating a null model for the given interacting networks.")
         #  else: take the explicitly chosen number of cross links
@@ -250,7 +250,7 @@ class InteractingNetworks(Network):
             number_cross_links = int(cross_link_density * (N1 * N2))
             print("Setting number of cross links according to chosen \
                   link density.")
-        elif cross_link_density is None and number_cross_links is None:
+        elif number_cross_links is None:
             number_cross_links = int(sum(cross_A.values()))
             print("Creating a null model for the given interacting networks.")
         #  else: take the explicitly chosen number of cross links
@@ -267,11 +267,11 @@ class InteractingNetworks(Network):
 
         n_1, n_2 = 0, 0
         node1, node2 = 0, 0
-        for i in range(number_cross_links):
+        for _ in range(number_cross_links):
             while True:
                 n_1 = int(random.random() * N1)
                 n_2 = int(random.random() * N2)
-                if not (cross_A_new[n_1, n_2] == 1):
+                if cross_A_new[n_1, n_2] != 1:
                     break
             cross_A_new[n_1, n_2] = 1
         for i in range(N1):
@@ -641,10 +641,7 @@ class InteractingNetworks(Network):
         :return int: the number of links within a given subnetwork.
         """
         n_links = self.internal_adjacency(node_list).sum()
-        if self.directed:
-            return n_links
-        else:
-            return n_links // 2
+        return n_links if self.directed else n_links // 2
 
     def cross_link_density(self, node_list1, node_list2):
         """
@@ -725,8 +722,7 @@ class InteractingNetworks(Network):
             subnetwork.
         """
         clustering = self.local_clustering()
-        internal_clustering = clustering[node_list].mean()
-        return internal_clustering
+        return clustering[node_list].mean()
 
     def cross_global_clustering(self, node_list1, node_list2):
         """
@@ -859,8 +855,6 @@ class InteractingNetworks(Network):
         A = self.sp_A[node_list1+node_list2, :][:, node_list1+node_list2]
         #  Get subnetwork sizes
         N1, N2 = len(node_list1), len(node_list2)
-        #  Initialize
-        cross_transitivity = 0.0
         #  Set counter
         counter_triangles = 0.0
         counter_triples = 0.0
@@ -868,20 +862,18 @@ class InteractingNetworks(Network):
         #  Loop over nodes in subnetwork 1
         for i in range(N1):
             node1 = i
-            if cross_degree[i] > 1:
+            if cross_degree[node1] > 1:
                 #  Loop over unique pairs of nodes in subnetwork 2
                 for j in range(N1, N1+N2):
                     node2 = j
-                    for k in range(N1, j):
+                    for k in range(N1, node2):
                         node3 = k
                         if A[node1, node2] == 1 and A[node1, node3] == 1:
                             counter_triples += 1
                             if A[node2, node3] == 1:
                                 counter_triangles += 1
 
-        if counter_triples:
-            cross_transitivity = counter_triangles / counter_triples
-        return cross_transitivity
+        return counter_triangles / counter_triples if counter_triples else 0.0
 
     @staticmethod
     def _calculate_general_average_path_length(path_lengths, internal=False):
@@ -1250,7 +1242,7 @@ class InteractingNetworks(Network):
         # Calculate cross clustering from subnetwork 1 to subnetwork 2
         counter = 0
         for node1 in range(N1):
-            if not norm[node1] == 0:
+            if norm[node1] != 0:
                 # Reset counter
                 counter = 0
                 #  Loop over unique pairs of nodes in subnetwork 2

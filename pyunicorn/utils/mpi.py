@@ -344,11 +344,10 @@ if am_master:
         :return: return value of call, or None of there are no more calls in
                  the queue.
         """
-        if len(queue) > 0:
-            id = queue[0]
-            return get_result(id)
-        else:
+        if len(queue) <= 0:
             return None
+        id = queue[0]
+        return get_result(id)
 
     def info():
         """
@@ -546,11 +545,10 @@ def run(verbose=False):
             terminate()
             if verbose:
                 print("MPI master : finished.")
-        else:  # I'm slave
-            if "slave" in _globals:
-                _globals["slave"]()
-            else:
-                serve()
+        elif "slave" in _globals:
+            _globals["slave"]()
+        else:
+            serve()
     else:  # run as single processor
         if verbose:
             print("MPI master : not available, running as a single process.")

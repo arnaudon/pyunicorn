@@ -35,8 +35,7 @@ else:
 
 
 def format_updatable(updatable, pbar):
-    if hasattr(updatable, 'update'): return updatable.update(pbar)
-    else: return updatable
+    return updatable.update(pbar) if hasattr(updatable, 'update') else updatable
 
 
 class Widget(AbstractWidget):
@@ -252,10 +251,7 @@ class FormatLabel(Timer):
             try:
                 value = getattr(pbar, key)
 
-                if transform is None:
-                   context[name] = value
-                else:
-                   context[name] = transform(value)
+                context[name] = value if transform is None else transform(value)
             except: pass
 
         return self.format_string % context

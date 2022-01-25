@@ -147,9 +147,5 @@ def testVisibilityHorizontal():
 
     val = tdata[1]
     i, j = min(node1, node2), max(node1, node2)
-    if np.sum(~(val[i+1:j] < min(val[i], val[j]))):
-        test = False
-    else:
-        test = True
-
+    test = not np.sum(~(val[i+1:j] < min(val[i], val[j])))
     assert test == vg.visibility_horizontal(node1, node2)

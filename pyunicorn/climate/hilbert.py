@@ -154,10 +154,8 @@ class HilbertClimateNetwork(ClimateNetwork):
             self._similarity_measure = results[0]
             self._coherence_phase = results[1]
             self.directed = directed
-        else:
-            # The phase is only used for directed Hilbert networks.
-            if directed:
-                self.adjacency = self.adjacency * (self.phase_shift() > 0)
+        elif directed:
+            self.adjacency = self.adjacency * (self.phase_shift() > 0)
 
     def set_directed(self, directed):
         """

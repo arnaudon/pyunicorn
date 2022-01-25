@@ -8,11 +8,9 @@ def do_one():
 
 def master():
     n = 1000
-    for i in range(0, n):
+    for _ in range(n):
         mpi.submit_call("do_one", ())
-    s = 0
-    for i in range(0, n):
-        s += mpi.get_next_result()
+    s = sum(mpi.get_next_result() for _ in range(n))
     print(s/n)
     mpi.info()
 

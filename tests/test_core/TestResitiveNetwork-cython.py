@@ -29,9 +29,7 @@ def testVCFB():
         for t in range(res.N):
             for s in range(t):
                 I = 0.0
-                if i in (t, s):
-                    pass
-                else:
+                if i not in (t, s):
                     for j in range(res.N):
                         I += admittance[i][j] * np.abs(
                             Is*(R[i][s]-R[j][s]) + It*(R[j][t]-R[i][t]))/2.
@@ -45,10 +43,7 @@ def testECFB():
     # set currents
     Is = It = np.float(1)
     # alloc output
-    if res.flagComplex:
-        dtype = complex
-    else:
-        dtype = float
+    dtype = complex if res.flagComplex else float
     ecfbPython = np.zeros([res.N, res.N], dtype=dtype)
     # the usual
     admittance = res.get_admittance()

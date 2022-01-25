@@ -300,15 +300,9 @@ class Data:
             # If 3D data set (time, lat, lon), select whole data set
             if n_dim == 3:
                 res["observable"] = observable.copy()
-            # If 4D data set (time, level, lat, lon), select certain vertical
-            # level.
             elif n_dim == 4:
                 # Handle selected vertical level
-                if vertical_level is None:
-                    level = 0
-                else:
-                    level = vertical_level
-
+                level = 0 if vertical_level is None else vertical_level
                 res["observable"] = observable[:, level, :, :].copy()
             else:
                 print("Regular NetCDF data sets with dimensions other than "
@@ -324,15 +318,9 @@ class Data:
             # If 2D data set (time, index), select whole data set
             if n_dim == 2:
                 res["observable"] = observable.copy()
-            # If 3D data set (time, level, index), select certain vertical
-            # level.
             elif n_dim == 3:
                 # Handle selected vertical level
-                if vertical_level is None:
-                    level = 0
-                else:
-                    level = vertical_level
-
+                level = 0 if vertical_level is None else vertical_level
                 res["observable"] = observable[:, level, :].copy()
             else:
                 print("Irregular NetCDF data sets with dimensions other than "
@@ -379,11 +367,10 @@ class Data:
             return cls._get_netcdf_data(file_name, file_type, observable_name,
                                         dimension_names, vertical_level,
                                         silence_level)
-        else:
-            if silence_level <= 1:
-                print("This file type can currently not be read "
-                      "by pyunicorn.")
-            return None
+        if silence_level <= 1:
+            print("This file type can currently not be read "
+                  "by pyunicorn.")
+        return None
 
     def print_data_info(self):
         """Print information on the data encapsulated by the Data object."""
@@ -654,7 +641,7 @@ class Data:
         """
         n = 2
         while n < i:
-            n = n * 2
+            n *= 2
 
         return n
 

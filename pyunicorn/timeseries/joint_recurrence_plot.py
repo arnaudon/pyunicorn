@@ -141,90 +141,87 @@ class JointRecurrencePlot(RecurrencePlot):
         self.N = 0
         """The length of both embedded time series x and y."""
 
-        #  Check for consistency: x and y need to have the same length
-        if x.shape[0] == y.shape[0]:
+        if x.shape[0] != y.shape[0]:
+            raise ValueError("Both time series x and y need to have the same \
+                             length!")
+        #  Store time series
+        self.x = x.copy().astype("float32")
+        """The time series x."""
+        self.y = y.copy().astype("float32")
+        """The time series y."""
 
-            #  Store time series
-            self.x = x.copy().astype("float32")
-            """The time series x."""
-            self.y = y.copy().astype("float32")
-            """The time series y."""
+        #  Reshape time series
+        self.x.shape = (self.x.shape[0], -1)
+        self.y.shape = (self.y.shape[0], -1)
 
-            #  Reshape time series
-            self.x.shape = (self.x.shape[0], -1)
-            self.y.shape = (self.y.shape[0], -1)
+        #  Normalize time series
+        if normalize:
+            self.normalize_time_series(self.x)
+            self.normalize_time_series(self.y)
 
-            #  Normalize time series
-            if normalize:
-                self.normalize_time_series(self.x)
-                self.normalize_time_series(self.y)
+        #  Store lag
+        self.lag = lag
+        """Used to create a delayed JRP."""
 
-            #  Store lag
-            self.lag = lag
-            """Used to create a delayed JRP."""
+        #  Get embedding dimension and delay from **kwds
+        dim = kwds.get("dim")
+        tau = kwds.get("tau")
 
-            #  Get embedding dimension and delay from **kwds
-            dim = kwds.get("dim")
-            tau = kwds.get("tau")
+        if dim is not None and tau is not None:
+            #  Embed the time series
+            self.x_embedded = \
+                self.embed_time_series(self.x, dim[0], tau[0])
+            """The embedded time series x."""
+            self.y_embedded = \
+                self.embed_time_series(self.y, dim[1], tau[1])
+            """The embedded time series y."""
+        else:
+            self.x_embedded = self.x
+            self.y_embedded = self.y
 
-            if dim is not None and tau is not None:
-                #  Embed the time series
-                self.x_embedded = \
-                    self.embed_time_series(self.x, dim[0], tau[0])
-                """The embedded time series x."""
-                self.y_embedded = \
-                    self.embed_time_series(self.y, dim[1], tau[1])
-                """The embedded time series y."""
-            else:
-                self.x_embedded = self.x
-                self.y_embedded = self.y
+        #  Prune embedded time series to same length
+        #  (number of state vectors)
+        min_N = min(self.x_embedded.shape[0], self.y_embedded.shape[0])
+        self.x_embedded = self.x_embedded[:min_N, :]
+        self.y_embedded = self.y_embedded[:min_N, :]
 
-            #  Prune embedded time series to same length
-            #  (number of state vectors)
-            min_N = min(self.x_embedded.shape[0], self.y_embedded.shape[0])
-            self.x_embedded = self.x_embedded[:min_N, :]
-            self.y_embedded = self.y_embedded[:min_N, :]
-
-            #  construct recurrence plot accordingly to
-            #  threshold / recurrence rate
-            if np.abs(lag) > x.shape[0]:
-                #  Lag must be smaller than size of recurrence plot
-                raise ValueError("Delay value (lag) must not exceed length of \
+        #  construct recurrence plot accordingly to
+        #  threshold / recurrence rate
+        if np.abs(lag) > x.shape[0]:
+            #  Lag must be smaller than size of recurrence plot
+            raise ValueError("Delay value (lag) must not exceed length of \
                                  time series!")
-            if threshold is not None:
-                #  Calculate the recurrence matrix R using the radius of
-                #  neighborhood threshold
-                JointRecurrencePlot.set_fixed_threshold(self, threshold)
-            elif threshold_std is not None:
-                #  Calculate the recurrence matrix R using the radius of
-                #  neighborhood threshold in units of the time series' STD
-                JointRecurrencePlot.\
-                    set_fixed_threshold_std(self, threshold_std)
-            elif recurrence_rate is not None:
-                #  Calculate the recurrence matrix R using a fixed recurrence
-                #  rate
-                JointRecurrencePlot.\
-                    set_fixed_recurrence_rate(self, recurrence_rate)
-            else:
-                raise NameError("Please give either threshold or \
+        if threshold is not None:
+            #  Calculate the recurrence matrix R using the radius of
+            #  neighborhood threshold
+            JointRecurrencePlot.set_fixed_threshold(self, threshold)
+        elif threshold_std is not None:
+            #  Calculate the recurrence matrix R using the radius of
+            #  neighborhood threshold in units of the time series' STD
+            JointRecurrencePlot.\
+                set_fixed_threshold_std(self, threshold_std)
+        elif recurrence_rate is not None:
+            #  Calculate the recurrence matrix R using a fixed recurrence
+            #  rate
+            JointRecurrencePlot.\
+                set_fixed_recurrence_rate(self, recurrence_rate)
+        else:
+            raise NameError("Please give either threshold or \
                                 recurrence_rate to construct the joint \
                                 recurrence plot!")
 
-            #  No treatment of missing values yet!
-            self.missing_values = False
-
-        else:
-            raise ValueError("Both time series x and y need to have the same \
-                             length!")
+        #  No treatment of missing values yet!
+        self.missing_values = False
 
     def __str__(self):
         """
         Returns a string representation.
         """
-        return ('JointRecurrencePlot: time series shapes %s.\n'
-                'Embedding dimension %i\nThreshold %s, %s metric') % (
-                    self.x.shape, self.dim if self.dim else 0,
-                    self.threshold, self.metric)
+        return (
+            'JointRecurrencePlot: time series shapes %s.\n'
+            'Embedding dimension %i\nThreshold %s, %s metric'
+            % (self.x.shape, self.dim or 0, self.threshold, self.metric)
+        )
 
     #
     #  Service methods

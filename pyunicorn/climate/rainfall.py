@@ -195,11 +195,7 @@ class RainfallClimateNetwork(ClimateNetwork):
         :rtype: 2D Numpy array (time, index)
         :return: the rainfall for each time and location
         """
-        # Multiply the observable with the scaling factor after adding the
-        # offset
-        rainfall = (observable + offset) * scale_fac
-
-        return rainfall
+        return (observable + offset) * scale_fac
 
     @staticmethod
     def calculate_top_events(rainfall, event_threshold):
@@ -241,9 +237,7 @@ class RainfallClimateNetwork(ClimateNetwork):
 
         no_rain_mask = (rainfall != 0)
 
-        final_mask = down_mask & up_mask & no_rain_mask
-
-        return final_mask
+        return down_mask & up_mask & no_rain_mask
 
     @staticmethod
     def rank_time_series(anomaly):
@@ -256,8 +250,7 @@ class RainfallClimateNetwork(ClimateNetwork):
         :rtype: 2D Numpy array (index, time)
         :return: The ranked time series for each gridpoint
         """
-        rank_time_series = anomaly.argsort(axis=1).argsort(axis=1) + 1.0
-        return rank_time_series
+        return anomaly.argsort(axis=1).argsort(axis=1) + 1.0
 
     def calculate_corr(self, final_mask, anomaly):
         """

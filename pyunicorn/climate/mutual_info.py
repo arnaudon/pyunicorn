@@ -228,9 +228,8 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         #  symmetric with respect to X and Y.
         for i in range(self.N):
             # Update progress bar every 10 steps
-            if self.silence_level <= 1:
-                if (i % 10) == 0:
-                    progress.update(i**2)
+            if self.silence_level <= 1 and (i % 10) == 0:
+                progress.update(i**2)
 
             for j in range(i):
                 #  Calculate the joint probability distribution

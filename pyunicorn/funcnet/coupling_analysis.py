@@ -323,10 +323,9 @@ class CouplingAnalysis:
             raise ValueError("NaNs in the data")
         if tau_max < 0:
             raise ValueError("tau_max = %d, but 0 <= tau_max" % tau_max)
-        if estimator == 'knn':
-            if knn > T/2. or knn < 1:
-                raise ValueError("knn = %s, should be between 1 and T/2"
-                                 % str(knn))
+        if estimator == 'knn' and (knn > T / 2.0 or knn < 1):
+            raise ValueError("knn = %s, should be between 1 and T/2"
+                             % str(knn))
 
         if lag_mode == 'max':
             similarity_matrix = numpy.ones((N, N), dtype='float32')
@@ -337,16 +336,16 @@ class CouplingAnalysis:
         if estimator == 'binning':
             self.plogp = self.create_plogp(T)
 
+        Z = []
+
         for i in range(N):
             for j in range(N):
                 maximum = 0.
                 lag_at_max = 0
+                Y = [(j, 0)]
                 for tau in range(tau_max + 1):
 
                     X = [(i, -tau)]
-                    Y = [(j, 0)]
-                    Z = []
-
                     XYZ = X + Y + Z
                     dim = len(XYZ)
                     max_lag = tau_max
@@ -412,10 +411,10 @@ class CouplingAnalysis:
                     similarity_matrix[i, j] = maximum
                     lag_matrix[i, j] = lag_at_max
 
-        if lag_mode == 'max':
-            return similarity_matrix, lag_matrix
-        elif lag_mode == 'all':
+        if lag_mode == 'all':
             return lagfuncs
+        elif lag_mode == 'max':
+            return similarity_matrix, lag_matrix
         else:
             return None
 
@@ -522,9 +521,8 @@ class CouplingAnalysis:
             raise ValueError("NaNs in the data")
         if tau_max < 0:
             raise ValueError("tau_max = %d, but 0 <= tau_max" % tau_max)
-        if estimator == 'knn':
-            if knn > T/2. or knn < 1:
-                raise ValueError(f"knn = {knn}, should be between 1 and T/2")
+        if estimator == 'knn' and (knn > T / 2.0 or knn < 1):
+            raise ValueError(f"knn = {knn}, should be between 1 and T/2")
 
         if lag_mode == 'max':
             similarity_matrix = numpy.ones((N, N), dtype='float32')
@@ -611,10 +609,10 @@ class CouplingAnalysis:
         elif lag_mode == 'all':
             lagfuncs[range(N), range(N), 0.] = 0.
 
-        if lag_mode == 'max':
-            return similarity_matrix, lag_matrix
-        elif lag_mode == 'all':
+        if lag_mode == 'all':
             return lagfuncs
+        elif lag_mode == 'max':
+            return similarity_matrix, lag_matrix
         else:
             return None
 
@@ -757,8 +755,7 @@ class CouplingAnalysis:
         result = numpy.bincount(multisymb)
         flathist[:len(result)] += result
 
-        return flathist.reshape(tuple(
-            [base, base] + [base for i in range(D-2)])).T
+        return flathist.reshape(tuple([base, base] + [base for _ in range(D-2)])).T
 
     @staticmethod
     def create_plogp(T):

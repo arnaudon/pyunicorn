@@ -171,10 +171,10 @@ class Navigator(object):
         self.shown = set([])
         # position of (shown) supernodes
         self.position = np.zeros((S, self.dim))
-        self.lines = [{} for i in range(S)]
-        self.circles = [None for i in range(S)]
-        self.polys = [[] for i in range(S)]
-        self.children = [[] for i in range(S)]
+        self.lines = [{} for _ in range(S)]
+        self.circles = [None for _ in range(S)]
+        self.polys = [[] for _ in range(S)]
+        self.children = [[] for _ in range(S)]
         for i in range(S-1):
             if parent[i] >= 0:
                 self.children[parent[i]].append(i)

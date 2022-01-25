@@ -438,10 +438,7 @@ class Network:
         if M != N:
             raise NetworkError("Adjacency must be square!")
         self.N = N
-        if N < 32767:
-            self.sp_dtype = np.int16
-        else:
-            self.sp_dtype = np.int32
+        self.sp_dtype = np.int16 if N < 32767 else np.int32
         self.sp_A = adjacency.tocsc().astype(self.sp_dtype)
 
         # calculate graph attributes
@@ -477,11 +474,7 @@ class Network:
         #  Convert to Numpy array and get number of nodes
         edges = np.array(edge_list)
 
-        if n_nodes is None:
-            N = edges.max() + 1
-        else:
-            N = n_nodes
-
+        N = edges.max() + 1 if n_nodes is None else n_nodes
         #  Symmetrize if undirected network
         if not self.directed:
             edges = np.append(edges, edges[:, [1, 0]], axis=0)
@@ -886,7 +879,7 @@ class Network:
         """
         N = n_nodes
         w, A = np.zeros(N, int), sp.lil_matrix((N, N))
-        nbs = [[] for i in range(N)]
+        nbs = [[] for _ in range(N)]
 
         # start with m+1 fully connected nodes
         w[:m+1] = 1
@@ -1243,10 +1236,8 @@ class Network:
         #  Extract edge list
         edge_list = graph.get_edgelist()
 
-        network = Network(edge_list=edge_list, directed=False,
+        return Network(edge_list=edge_list, directed=False,
                           silence_level=silence_level)
-
-        return network
 
     @staticmethod
     def WattsStrogatzGraph(N, k, p):
@@ -1346,22 +1337,21 @@ class Network:
                   + "Use link_attribute=None instead.")
             link_attribute = None
 
-        if link_attribute is None:
-            if self.directed:
-                if direction == "out":
-                    diagonal = self.outdegree()
-                elif direction == "in":
-                    diagonal = self.indegree()
-                else:
-                    print("ERROR: argument direction of Network.laplacian "
-                          "can only take values <<in>> or <<out>>.")
-            else:
-                diagonal = self.degree()
-
-            return np.diag(diagonal, 0) - self.adjacency
-        else:
+        if link_attribute is not None:
             raise NotImplementedError("Only implemented for link_attribute \
                                       =None.")
+        if self.directed:
+            if direction == "out":
+                diagonal = self.outdegree()
+            elif direction == "in":
+                diagonal = self.indegree()
+            else:
+                print("ERROR: argument direction of Network.laplacian "
+                      "can only take values <<in>> or <<out>>.")
+        else:
+            diagonal = self.degree()
+
+        return np.diag(diagonal, 0) - self.adjacency
 
     def nsi_laplacian(self):
         """
@@ -1689,9 +1679,8 @@ class Network:
         """
         if key is None:
             return (self.sp_A * self.sp_A).diagonal()
-        else:
-            w = self.link_attribute(key)
-            return (w @ w).diagonal()
+        w = self.link_attribute(key)
+        return (w @ w).diagonal()
 
     @cached_var('nsi_degree', 'n.s.i. degree')
     def nsi_degree_uncorr(self, key=None):
@@ -1706,12 +1695,10 @@ class Network:
         """
         if self.directed:
             return self.nsi_indegree(key) + self.nsi_outdegree(key)
-        else:
-            if key is None:
-                return self.sp_Aplus() * self.node_weights
-            else:
-                w = self.link_attribute(key)
-                return (self.node_weights @ w).squeeze()
+        if key is None:
+            return self.sp_Aplus() * self.node_weights
+        w = self.link_attribute(key)
+        return (self.node_weights @ w).squeeze()
 
     def sp_nsi_diag_k(self):
         """Sparse diagonal matrix of n.s.i. degrees"""
@@ -1794,9 +1781,8 @@ class Network:
         """
         if key is None:
             return self.node_weights * self.sp_Aplus()
-        else:
-            w = self.link_attribute(key)
-            return (self.node_weights @ w).squeeze()
+        w = self.link_attribute(key)
+        return (self.node_weights @ w).squeeze()
 
     @cached_var('nsi_outdegree')
     def nsi_outdegree(self, key=None):
@@ -1826,9 +1812,8 @@ class Network:
         """
         if key is None:
             return self.sp_Aplus() * self.node_weights
-        else:
-            w = self.link_attribute(key)
-            return (w @ self.node_weights.transpose()).transpose().squeeze()
+        w = self.link_attribute(key)
+        return (w @ self.node_weights.transpose()).transpose().squeeze()
 
     @cached_const('base', 'degree df', 'the degree frequency distribution')
     def degree_distribution(self):
@@ -2467,11 +2452,7 @@ class Network:
 
             # print(motif_counts)
 
-            if n_stars != 0:
-                return 4 * n_cliques / float(n_stars)
-            else:
-                return 0.
-
+            return 4 * n_cliques / float(n_stars) if n_stars != 0 else 0.
         if order > 4:
             raise NotImplementedError("Higher order transitivity is not yet \
                                       implemented for orders larger than 4.")
@@ -2687,16 +2668,15 @@ class Network:
         """
         if typical_weight is None:
             return self.nsi_local_clustering_uncorr()
-        else:
-            k = self.nsi_degree(typical_weight=typical_weight)
-            if self.silence_level <= 1:
-                print("Calculating corrected n.s.i. "
-                      "local clustering coefficients...")
+        k = self.nsi_degree(typical_weight=typical_weight)
+        if self.silence_level <= 1:
+            print("Calculating corrected n.s.i. "
+                  "local clustering coefficients...")
 
-            Ap = self.sp_Aplus()
-            Ap_Dw = Ap * self.sp_diag_w()
-            numerator = (Ap_Dw * Ap_Dw * Ap).diagonal()
-            return (numerator/typical_weight**2 - 3.0*k - 1.0) / (k * (k-1.0))
+        Ap = self.sp_Aplus()
+        Ap_Dw = Ap * self.sp_diag_w()
+        numerator = (Ap_Dw * Ap_Dw * Ap).diagonal()
+        return (numerator/typical_weight**2 - 3.0*k - 1.0) / (k * (k-1.0))
 
     @cached_const('nsi', 'global clustering',
                   'n.s.i. global topological clustering coefficient')
@@ -2867,27 +2847,26 @@ class Network:
 
         if link_attribute is None:
             return self.graph.average_path_length()
-        else:
-            path_lengths = self.path_lengths(link_attribute)
+        path_lengths = self.path_lengths(link_attribute)
 
-            #  Identify unconnected pairs and save in binary array isinf
-            unconnected_pairs = np.isinf(path_lengths)
-            #  Count the number of unconnected pairs
-            n_unconnected_pairs = unconnected_pairs.sum()
-            #  Set infinite entries corresponding to unconnected pairs to zero
-            path_lengths[unconnected_pairs] = 0
+        #  Identify unconnected pairs and save in binary array isinf
+        unconnected_pairs = np.isinf(path_lengths)
+        #  Count the number of unconnected pairs
+        n_unconnected_pairs = unconnected_pairs.sum()
+        #  Set infinite entries corresponding to unconnected pairs to zero
+        path_lengths[unconnected_pairs] = 0
 
-            #  Take average of shortest geographical path length matrix
-            #  excluding the diagonal, since it is always zero, and all
-            #  unconnected pairs.  The diagonal should never contain
-            #  infinities, so that should not be a problem.
-            average_path_length = (path_lengths.sum() / float(
-                self.N * (self.N - 1) - n_unconnected_pairs))
+        #  Take average of shortest geographical path length matrix
+        #  excluding the diagonal, since it is always zero, and all
+        #  unconnected pairs.  The diagonal should never contain
+        #  infinities, so that should not be a problem.
+        average_path_length = (path_lengths.sum() / float(
+            self.N * (self.N - 1) - n_unconnected_pairs))
 
-            #  Reverse changes to path_lengths
-            path_lengths[unconnected_pairs] = np.inf
+        #  Reverse changes to path_lengths
+        path_lengths[unconnected_pairs] = np.inf
 
-            return average_path_length
+        return average_path_length
 
     @cached_const('nsi', 'avg path length',
                   'n.s.i. average shortest path length')
@@ -3170,17 +3149,15 @@ class Network:
 
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
-        if self.silence_level <= 1:
-            if "silent" not in kwargs:
-                print("Calculating n.s.i. betweenness...")
+        if self.silence_level <= 1 and "silent" not in kwargs:
+            print("Calculating n.s.i. betweenness...")
 
         w = self.node_weights
-        if "aw" in kwargs:
-            if kwargs["aw"] == 0:
-                w = 0.0*w + 1.0
+        if "aw" in kwargs and kwargs["aw"] == 0:
+            w = 0.0*w + 1.0
 
         N, k = self.N, self.degree()
-        rN = range(0, N)
+        rN = range(N)
         zn = np.zeros(N, dtype=np.float)
         betweenness_times_w = zn.copy()
 
@@ -3810,7 +3787,6 @@ class Network:
             #  If the component has size 1, set random walk betweenness to zero
             if len(comp) == 1:
                 nsi_arenas_betweenness[comp[0]] = 0
-            #  For larger components, continue with the calculation
             else:
                 #  Get the subgraph corresponding to component i
                 subgraph = components.subgraph(c)
@@ -3882,10 +3858,7 @@ class Network:
                         component_betweenness += this_betweenness
                 else:
                     component_betweenness = np.zeros(N)
-                    if stopping_mode == "twinness":
-                        this_twinness = twinness
-                    else:
-                        this_twinness = None
+                    this_twinness = twinness if stopping_mode == "twinness" else None
                     error_message, result = \
                         Network._mpi_nsi_arenas_betweenness(
                             N, sp_P, Aplus, w, w, 0, N,
@@ -4459,9 +4432,8 @@ class Network:
 
         for i in range(self.N):
             # Update progress bar every 10 steps
-            if self.silence_level <= 1:
-                if (i % 10) == 0:
-                    progress.update(i)
+            if self.silence_level <= 1 and (i % 10) == 0:
+                progress.update(i)
 
             #  Remove vertex i from graph
             graph = self.graph - i
@@ -4562,10 +4534,7 @@ class Network:
             fiedler_value = eigenvalues[i+1]
             i += 1
 
-        #  Calculate synchronizability R
-        R = eigenvalues[-1] / fiedler_value
-
-        return R
+        return eigenvalues[-1] / fiedler_value
 
     #
     #  Distance measures between two graphs
@@ -4685,14 +4654,14 @@ class Network:
         # variance.  assign node to cluster 2*i if eigenvector positive at the
         # node, otherwise to cluster 2*i+1:
         cluster_index = 2 * np.argmax(explained_var, axis=1)
-        for i in range(0, N):
+        for i in range(N):
             if evecs[i, cluster_index[i]/2] < 0.0:
                 cluster_index[i] += 1
 
         cluster_explained_var = np.max(explained_var, axis=1)
         cluster_index_set = set(cluster_index)
         cluster_sizes = np.zeros(max(cluster_index_set)+1)
-        for i in range(0, N):
+        for i in range(N):
             cluster_sizes[cluster_index[i]] += self.node_weights[i]
         cluster_sizes = cluster_sizes[list(cluster_index_set)]
         cluster_fit = cluster_explained_var / var

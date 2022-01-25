@@ -204,13 +204,13 @@ class CouplingAnalysisPurePython:
 
         if lag_mode == 'all':
             corrmat = numpy.repeat(res, 2*tau_max + 1, axis=0)
-        elif lag_mode == 'sum':
-            corrmat = numpy.array([abs(res[0]), abs(res[0])]) * (tau_max+1.)
         elif lag_mode == 'max':
             corrmat = numpy.array([abs(res[0]),
                                    numpy.random.randint(-tau_max, tau_max+1,
                                                         (self.N, self.N))])
 
+        elif lag_mode == 'sum':
+            corrmat = numpy.array([abs(res[0]), abs(res[0])]) * (tau_max+1.)
         return corrmat
 
     def time_surrogate_for_cc(self, sample_range=100, tau_max=1,
@@ -266,11 +266,8 @@ class CouplingAnalysisPurePython:
         if lag_mode == 'all':
             corrmat = numpy.zeros((2*tau_max + 1, self.N, self.N),
                                   dtype='float32')
-        elif lag_mode == 'sum':
+        elif lag_mode in ['sum', 'max']:
             corrmat = numpy.zeros((2, self.N, self.N), dtype='float32')
-        elif lag_mode == 'max':
-            corrmat = numpy.zeros((2, self.N, self.N), dtype='float32')
-
         # loop over all node pairs, NOT symmetric due to time shifts!
         for i in range(self.N-only_tri):
             for j in range((i+1)*only_tri, self.N):
@@ -358,11 +355,7 @@ class CouplingAnalysisPurePython:
         :rtype: 3D numpy array (float) [index, index, index]
         :return: correlation matrix with different lag_mode choices
         """
-        if bins < 255:
-            dtype = 'uint8'
-        else:
-            dtype = 'int16'
-
+        dtype = 'uint8' if bins < 255 else 'int16'
         # Normalize anomaly time series to zero mean and unit variance for all
         # lags, array contains normalizations for all lags
         corr_range = self.total_time - 2*tau_max
@@ -451,11 +444,7 @@ class CouplingAnalysisPurePython:
         :rtype: 3D numpy array (float) [index, index, index]
         :return: correlation matrix with different lag_mode choices
         """
-        if bins < 255:
-            dtype = 'uint8'
-        else:
-            dtype = 'int16'
-
+        dtype = 'uint8' if bins < 255 else 'int16'
         #  Normalize anomaly time series to zero mean and unit variance for all
         #  lags, array contains normalizations for all lags
         corr_range = self.total_time - 2*tau_max
@@ -516,11 +505,7 @@ class CouplingAnalysisPurePython:
         :return: correlation matrix with different lag_mode choices
         """
 
-        if bins < 255:
-            dtype = 'uint8'
-        else:
-            dtype = 'int16'
-
+        dtype = 'uint8' if bins < 255 else 'int16'
         perm = numpy.random.permutation(
             range(tau_max, self.total_time - tau_max))[:sample_range]
 
@@ -568,11 +553,8 @@ class CouplingAnalysisPurePython:
         if lag_mode == 'all':
             corrmat = numpy.zeros((2*tau_max + 1, self.N, self.N),
                                   dtype='float32')
-        elif lag_mode == 'sum':
+        elif lag_mode in ['sum', 'max']:
             corrmat = numpy.zeros((2, self.N, self.N), dtype='float32')
-        elif lag_mode == 'max':
-            corrmat = numpy.zeros((2, self.N, self.N), dtype='float32')
-
         # Precalculation of the log
         gfunc = numpy.zeros(corr_range+1)
         for t in range(1, corr_range + 1):
@@ -676,11 +658,7 @@ class CouplingAnalysisPurePython:
 
         (nNodes, ntime) = original.shape
 
-        if (ntime % 2) == 0:
-            lenPhase = (ntime - 2) / 2
-        else:
-            lenPhase = (ntime - 1) / 2
-
+        lenPhase = (ntime - 2) / 2 if (ntime % 2) == 0 else (ntime - 1) / 2
         #  Generate random phases uniformly distributed in the interval
         #  [0, 2*Pi]. Guarantee that the phases for positive and negative
         #  frquencies are the same to obtain real surrogates in the end!

@@ -135,9 +135,8 @@ class Grid:
             (including ending).
         """
         try:
-            f = open(filename, 'w')
-            pickle.dump(self, f)
-            f.close()
+            with open(filename, 'w') as f:
+                pickle.dump(self, f)
         except IOError:
             print("An error occurred while saving Grid instance to "
                   f"pickle file {filename}")
@@ -177,10 +176,8 @@ class Grid:
         :return: :class:`Grid` instance.
         """
         try:
-            f = open(filename, 'r')
-            grid = pickle.load(f)
-            f.close()
-
+            with open(filename, 'r') as f:
+                grid = pickle.load(f)
             return grid
         except IOError:
             print("An error occurred while loading Grid instance from "
@@ -357,11 +354,7 @@ class Grid:
         new_lon_grid = np.empty(self.N)
 
         for i in range(self.N):
-            if lon_seq[i] > 180.:
-                new_lon_grid[i] = lon_seq[i] - 360.
-            else:
-                new_lon_grid[i] = lon_seq[i]
-
+            new_lon_grid[i] = lon_seq[i] - 360. if lon_seq[i] > 180. else lon_seq[i]
         return new_lon_grid
 
     def node_coordinates(self, index):
@@ -423,10 +416,7 @@ class Grid:
 
         angdist = np.arccos(expr)
 
-        #  Get index of closest node
-        n_node = angdist.argmin()
-
-        return n_node
+        return angdist.argmin()
 
     def cos_lat(self):
         """

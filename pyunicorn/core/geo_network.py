@@ -403,11 +403,9 @@ class GeoNetwork(Network):
         #  type=2 corresponds to returning the full adjacency matrix
         A = np.array(graph.get_adjacency(type=2).data)
 
-        network = GeoNetwork(adjacency=A, grid=grid, directed=False,
+        return GeoNetwork(adjacency=A, grid=grid, directed=False,
                              node_weight_type=node_weight_type,
                              silence_level=silence_level)
-
-        return network
 
     @staticmethod
     def ConfigurationModel(grid, degrees, node_weight_type="surface",
@@ -464,11 +462,9 @@ class GeoNetwork(Network):
         #  type=2 corresponds to returning the full adjacency matrix
         A = np.array(graph.get_adjacency(type=2).data)
 
-        network = GeoNetwork(adjacency=A, grid=grid, directed=False,
+        return GeoNetwork(adjacency=A, grid=grid, directed=False,
                              node_weight_type=node_weight_type,
                              silence_level=silence_level)
-
-        return network
 
     #
     #  Graph randomization methods
@@ -713,9 +709,9 @@ class GeoNetwork(Network):
         #  Count pairs and links by distance
         n_pairs_by_dist = {}
         n_links_by_dist = {}
-        for j in range(0, N):
+        for j in range(N):
             print(j)
-            for i in range(0, j):
+            for i in range(j):
                 d = D[i, j]
                 try:
                     n_pairs_by_dist[d] += 1
@@ -739,21 +735,18 @@ class GeoNetwork(Network):
 
         #  Link new pairs with respective probability
         A_new = np.zeros((N, N))
-        for j in range(0, N):
+        for j in range(N):
             print("new ", j)
-            for i in range(0, j):
+            for i in range(j):
                 d = D[i, j]
                 if p_by_dist[d] >= np.random.random():
                     A_new[i, j] = A_new[j, i] = 1
                     print(i, j, d, p_by_dist[d])
 
-        #  Create new GeoNetwork object based on A_new
-        net = GeoNetwork(adjacency=A_new, grid=self.grid,
+        return GeoNetwork(adjacency=A_new, grid=self.grid,
                          directed=self.directed,
                          node_weight_type=self.node_weight_type,
                          silence_level=self.silence_level)
-
-        return net
 
     #
     #  Generate a geographical distribution
@@ -979,10 +972,7 @@ class GeoNetwork(Network):
         #  Calculate total dimensionless area of the sphere
         norm = cos_lat.sum()
 
-        #  Normalize area weighted connectivity by the total dimensionless area
-        inawc = cos_lat.dot(self.adjacency) / norm
-
-        return inawc
+        return cos_lat.dot(self.adjacency) / norm
 
     def outarea_weighted_connectivity(self):
         """
@@ -1010,10 +1000,7 @@ class GeoNetwork(Network):
         #  Calculate total dimensionless area of the sphere
         norm = cos_lat.sum()
 
-        #  Normalize area weighted connectivity by the total dimensionless area
-        outawc = np.dot(self.adjacency, cos_lat) / norm
-
-        return outawc
+        return np.dot(self.adjacency, cos_lat) / norm
 
     def area_weighted_connectivity_distribution(self, n_bins):
         """
@@ -1550,8 +1537,7 @@ class GeoNetwork(Network):
         A = self.undirected_adjacency().A
         D = self.grid.angular_distance()
 
-        maximum_link_distance = (D * A).max(axis=1)
-        return maximum_link_distance
+        return (D * A).max(axis=1)
 
     #
     #  Link weighted network measures
@@ -1640,8 +1626,7 @@ class GeoNetwork(Network):
         if self.silence_level <= 1:
             print("Calculating local Tsonis clustering coefficients...")
 
-        tsonis_clustering = np.zeros(self.N)
-        return tsonis_clustering
+        return np.zeros(self.N)
 
     def local_geographical_clustering(self):
         """
@@ -1699,7 +1684,7 @@ class GeoNetwork(Network):
         B = np.zeros((N, N)).astype("int")
         width = self.grid.grid()["lon"].size
 
-        for i in range(0, N):
+        for i in range(N):
             if i % width > 0:
                 B[i, i - 1] = 1
             elif lon_closed:

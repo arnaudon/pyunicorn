@@ -33,11 +33,9 @@ def testParallelTrivial():
 
     ER(a) = 2*ER(b) = 3*ER(c)
     """
-    nws = []
     # construct nw1
     idI, idJ = [0, 1], [1, 2]
-    nws.append(makeNW(idI, idJ, [.1]))
-
+    nws = [makeNW(idI, idJ, [.1])]
     # construct nw2
     idI += [0, 3]
     idJ += [3, 2]
@@ -79,12 +77,9 @@ def testParallelLessTrivial():
                       |      |            |
                       |---- 10 -----------|
     """
-    nws = []
-
     idI = [0, 1, 1, 2, 3]
     idJ = [1, 2, 3, 3, 4]
-    nws.append(makeNW(idI, idJ, [1]*len(idI)))
-
+    nws = [makeNW(idI, idJ, [1]*len(idI))]
     idI.extend([0, 5, 5, 6, 6])
     idJ.extend([5, 6, 7, 7, 4])
     nws.append(makeNW(idI, idJ, [1]*len(idI)))
@@ -217,9 +212,9 @@ def testSerialTrivial():
         nw1[j, i] = v
 
     # construct nw2
-    idI = idI + [2, 3]
-    idJ = idJ + [3, 4]
-    val = val + [1, 1]
+    idI += [2, 3]
+    idJ += [3, 4]
+    val += [1, 1]
 
     nw2 = np.zeros((5, 5))
     for i, j, v in zip(idI, idJ, val):
@@ -246,8 +241,7 @@ def testSerialRandom():
     N = 10
     p = .7
     runs = 50
-    for run in range(0, runs):
-
+    for _ in range(runs):
         # a random graph
         G = nx.fast_gnp_random_graph(N, p)
         try:

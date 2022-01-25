@@ -182,13 +182,9 @@ class VisibilityGraph(InteractingNetworks):
         """
         if node1 == node2:
             return False
-        else:
-            val = self.time_series
-            i, j = min(node1, node2), max(node1, node2)
-            if np.sum(~(val[i+1:j] < min(val[i], val[j]))):
-                return False
-            else:
-                return True
+        val = self.time_series
+        i, j = min(node1, node2), max(node1, node2)
+        return not np.sum(~(val[i+1:j] < min(val[i], val[j])))
 
     def visibility_single(self, node):
         """
@@ -354,10 +350,8 @@ class VisibilityGraph(InteractingNetworks):
         N_past = np.arange(self.N)
         N_future = N_past[::-1]
 
-        cdegree = (self.retarded_degree() * N_past
+        return (self.retarded_degree() * N_past
                    + self.advanced_degree() * N_future) / float(self.N - 1)
-
-        return cdegree
 
     def boundary_corrected_closeness(self):
         """
@@ -367,7 +361,5 @@ class VisibilityGraph(InteractingNetworks):
         N_past = np.arange(self.N)
         N_future = N_past[::-1]
 
-        ccloseness = (self.N - 1) * (self.retarded_closeness() / N_past
+        return (self.N - 1) * (self.retarded_closeness() / N_past
                                      + self.advanced_closeness() / N_future)
-
-        return ccloseness

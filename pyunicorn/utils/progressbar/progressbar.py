@@ -206,9 +206,9 @@ class ProgressBar(object):
                 width -= len(widget)
 
         count = len(expanding)
+        index = expanding.pop()
         while count:
             portion = max(int(math.ceil(width * 1. / count)), 0)
-            index = expanding.pop()
             count -= 1
 
             widget = result[index].update(self, portion)

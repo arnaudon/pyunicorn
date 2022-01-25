@@ -50,9 +50,8 @@ def NonVecEventSync(es1, es2, taumax):
             tau = min([ex[m+1] - ex[m], ex[m] - ex[m-1],
                        ey[n+1] - ey[n], ey[n] - ey[n-1]]) / 2
 
-            if dstxy > 0:
-                if dstxy <= tau:
-                    Axy[m, n] = True
+            if dstxy > 0 and dstxy <= tau:
+                Axy[m, n] = True
             if dstxy < 0:
                 if dstxy >= -tau:
                     Ayx[m, n] = True

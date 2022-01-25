@@ -83,8 +83,11 @@ def compare_nsi(net, nsi_measures):
         print(nsi_measure)
         for i, netc in enumerate(net_copies):
             # test for invariance of old nodes
-            assert np.allclose(getattr(netc, nsi_measure)(**kwargs)[0:net.N],
-                               getattr(net, nsi_measure)(**kwargs))
+            assert np.allclose(
+                getattr(netc, nsi_measure)(**kwargs)[: net.N],
+                getattr(net, nsi_measure)(**kwargs),
+            )
+
             # test for invariance of origianl and new splitted node
             assert np.allclose(getattr(netc, nsi_measure)(**kwargs)[i],
                                getattr(netc, nsi_measure)(**kwargs)[-1])
@@ -256,7 +259,7 @@ def test_BarabasiAlbert_igraph():
     assert np.allclose(net.link_density, 0.02)
 
 def test_ConfigurationModel():
-    net = Network.ConfigurationModel([3 for _ in range(0, 1000)])
+    net = Network.ConfigurationModel([3 for _ in range(1000)])
     assert int(round(net.degree().mean())) == 3
 
 def test_randomly_rewire(capsys):
@@ -644,8 +647,7 @@ def test_interregional_betweenness():
     exp = np.array([1., 1., 0., 0., 1., 0.])
     assert np.allclose(res, exp)
 
-    res = net.interregional_betweenness(sources=range(0, 6),
-                                        targets=range(0, 6))
+    res = net.interregional_betweenness(sources=range(0, 6), targets=range(6))
     exp = np.array([9., 3., 0., 2., 6., 0.])
     assert np.allclose(res, exp)
 

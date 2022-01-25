@@ -117,10 +117,7 @@ class SpearmanClimateNetwork(TsonisClimateNetwork):
         :rtype: 2D Numpy array [time, index]
         :return: the rank time series.
         """
-        #  Obtain rank time series
-        rank_time_series = anomaly.argsort(axis=0).argsort(axis=0)
-
-        return rank_time_series
+        return anomaly.argsort(axis=0).argsort(axis=0)
 
     def _calculate_correlation(self, anomaly):
         """
@@ -140,8 +137,4 @@ class SpearmanClimateNetwork(TsonisClimateNetwork):
         #  Convert anomaly time series to time series of ranks
         ranks = self.rank_time_series(anomaly)
 
-        #  Cast to float32 type to save memory since correlation coefficients
-        #  are not needed in high floating point precision.
-        spearman_rho = np.corrcoef(ranks.transpose()).astype("float32")
-
-        return spearman_rho
+        return np.corrcoef(ranks.transpose()).astype("float32")

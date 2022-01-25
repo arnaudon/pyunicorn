@@ -155,11 +155,7 @@ class CoupledTsonisClimateNetwork(CoupledClimateNetwork):
 
         anomaly = np.concatenate((anomaly_1, anomaly_2), axis=1)
 
-        #  Cast to float32 type to save memory since correlation coefficients
-        #  are not needed in high floating point precision.
-        correlation = np.corrcoef(anomaly.transpose()).astype("float32")
-
-        return correlation
+        return np.corrcoef(anomaly.transpose()).astype("float32")
 
     def calculate_similarity_measure(self, anomaly_1, anomaly_2):
         """

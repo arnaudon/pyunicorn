@@ -116,22 +116,24 @@ class NetCDFDictionary:
             return None
 
         #  Create empty dictionary structure
-        content = {"global_attributes": {}, "dimensions": {}, "variables": {}}
-        #  Copy all global attributes and all dimensions
-        content["global_attributes"] = cdf.__dict__
+        content = {
+            'dimensions': {},
+            'variables': {},
+            'global_attributes': cdf.__dict__,
+        }
+
         for dim_name, dim_obj in cdf.dimensions.iteritems():
             content["dimensions"][dim_name] = len(cdf.dimensions[dim_name])
 
         #  Loop over variables
         for var in cdf.variables.keys():
             #  Create empty dictionary for variable var
-            content["variables"][var] = {"array": {}, "type": {}, "dims": {},
-                                         "attributes": {}}
-            #  Copy type, dimensions and variable attributes
-            content["variables"][var]["type"] = cdf.variables[var].dtype.char
-            content["variables"][var]["dims"] = cdf.variables[var].dimensions
-            content["variables"][var]["attributes"] = \
-                cdf.variables[var].__dict__
+            content["variables"][var] = {
+                'array': {},
+                'type': cdf.variables[var].dtype.char,
+                'dims': cdf.variables[var].dimensions,
+                'attributes': cdf.variables[var].__dict__,
+            }
 
             #  Load data if wanted
             if var in with_array or 'all' in with_array:
@@ -204,11 +206,7 @@ class NetCDFDictionary:
 
         #  Write dimensions with given lengths
         for val in self.dict["dimensions"]:
-            if val == "time":
-                cdf.createDimension(val, self.dict["dimensions"][val])
-            else:
-                cdf.createDimension(val, self.dict["dimensions"][val])
-
+            cdf.createDimension(val, self.dict["dimensions"][val])
         #  Write variables
         for var in self.dict["variables"]:
             #  Check variable dictionary for empty entries

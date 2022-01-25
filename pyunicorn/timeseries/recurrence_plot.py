@@ -234,23 +234,25 @@ class RecurrencePlot:
         """
         Returns a string representation.
         """
-        return ('RecurrencePlot: time series shape %s.\n'
-                'Embedding dimension %i\nThreshold %s, %s metric') % (
-                    self.time_series.shape, self.dim if self.dim else 0,
-                    self.threshold, self.metric)
+        return (
+            'RecurrencePlot: time series shape %s.\n'
+            'Embedding dimension %i\nThreshold %s, %s metric'
+            % (self.time_series.shape, self.dim or 0, self.threshold, self.metric)
+        )
 
     def clear_cache(self, irreversible=False):
         """Clean up memory."""
-        if irreversible:
-            if self._distance_matrix_cached:
-                del self._distance_matrix
-                self._distance_matrix_cached = False
-            if self._diagline_dist_cached:
-                del self._diagline_dist
-                self._diagline_dist_cached = False
-            if self._vertline_dist_cached:
-                del self._vertline_dist
-                self._vertline_dist_cached = False
+        if not irreversible:
+            return
+        if self._distance_matrix_cached:
+            del self._distance_matrix
+            self._distance_matrix_cached = False
+        if self._diagline_dist_cached:
+            del self._diagline_dist
+            self._diagline_dist_cached = False
+        if self._vertline_dist_cached:
+            del self._vertline_dist
+            self._vertline_dist_cached = False
 
     #
     #  Service methods
@@ -265,10 +267,9 @@ class RecurrencePlot:
         """
         if not self.sparse_rqa:
             return self.R
-        else:
-            print("Exception: Sequential RQA mode is enabled. "
-                  "Recurrence matrix is not stored in memory.")
-            return None
+        print("Exception: Sequential RQA mode is enabled. "
+              "Recurrence matrix is not stored in memory.")
+        return None
 
     def distance_matrix(self, embedding, metric):
         """
@@ -371,7 +372,7 @@ class RecurrencePlot:
         if p is None:
             if tau_w == "est":
                 tau_w = 4 * (t.max() - t.min()) / (N-1)
-                for i in range(5):
+                for _ in range(5):
                     y0 = RecurrencePlot.legendre_coordinates(x, dim=2, t=t,
                                                              tau_w=tau_w)
                     tau_w = np.sqrt(3*x.var()/(y0[:, 1]**2).mean())
@@ -733,8 +734,7 @@ class RecurrencePlot:
 
         #  Sort and get threshold
         samples.sort()
-        threshold = samples[int(recurrence_rate * n_samples)]
-        return threshold
+        return samples[int(recurrence_rate * n_samples)]
 
     @staticmethod
     def bootstrap_distance_matrix(embedding, metric, M):
@@ -806,7 +806,7 @@ class RecurrencePlot:
         if not self.sparse_rqa:
             R = self.recurrence_matrix()
             RR = R.sum() / float(N ** 2)
-        elif self.sparse_rqa and self.metric == "supremum":
+        elif self.metric == "supremum":
             RR = (self.vertline_dist() * np.arange(N)).sum() / \
                 float(N ** 2)
 
@@ -848,9 +848,7 @@ class RecurrencePlot:
         :return: the frequency distribution of diagonal line lengths
             :math:`P(l)`.
         """
-        if self._diagline_dist_cached:
-            return self._diagline_dist
-        else:
+        if not self._diagline_dist_cached:
             #  Prepare
             n_time = self.N
             diagline = np.zeros(n_time, dtype="int32")
@@ -866,8 +864,7 @@ class RecurrencePlot:
                 else:
                     _diagline_dist_norqa(n_time, diagline, recmat)
 
-            #  Calculations for sequential RQA
-            elif self.sparse_rqa and self.metric == "supremum":
+            elif self.metric == "supremum":
                 #  Get embedding
                 embedding = self.embedding
                 #  Get time series dimension
@@ -888,7 +885,7 @@ class RecurrencePlot:
             self._diagline_dist = 2*diagline
             self._diagline_dist_cached = True
 
-            return self._diagline_dist
+        return self._diagline_dist
 
     @staticmethod
     def rejection_sampling(dist, M):
@@ -982,11 +979,7 @@ class RecurrencePlot:
         :return number: the determinism :math:`DET`.
         """
         #  Use resampled distribution of diagonal lines if provided
-        if resampled_dist is None:
-            diagline = self.diagline_dist()
-        else:
-            diagline = resampled_dist
-
+        diagline = self.diagline_dist() if resampled_dist is None else resampled_dist
         n_time = self.N
 
         #  Number of recurrence points that form diagonal structures (of at
@@ -1013,11 +1006,7 @@ class RecurrencePlot:
         :return number: the average diagonal line length :math:`L`.
         """
         #  Use resampled distribution of diagonal lines if provided
-        if resampled_dist is None:
-            diagline = self.diagline_dist()
-        else:
-            diagline = resampled_dist
-
+        diagline = self.diagline_dist() if resampled_dist is None else resampled_dist
         n_time = self.N
 
         #  Number of recurrence points that form diagonal structures (of at
@@ -1044,11 +1033,7 @@ class RecurrencePlot:
         :return number: the diagonal line-based entropy :math:`ENTR`.
         """
         #  Use resampled distribution of diagonal lines if provided
-        if resampled_dist is None:
-            diagline = self.diagline_dist()
-        else:
-            diagline = resampled_dist
-
+        diagline = self.diagline_dist() if resampled_dist is None else resampled_dist
         #  Creates a reduced array of the values (not 0) of the diagonal line
         #  length (langer than l_min)
         diagline = diagline[l_min:]
@@ -1076,9 +1061,7 @@ class RecurrencePlot:
         :return: the frequency distribution of vertical line lengths
             :math:`P(v)`.
         """
-        if self._vertline_dist_cached:
-            return self._vertline_dist
-        else:
+        if not self._vertline_dist_cached:
             #  Prepare
             n_time = self.N
             vertline = np.zeros(n_time, dtype="int32")
@@ -1095,8 +1078,7 @@ class RecurrencePlot:
                 else:
                     _vertline_dist_norqa(n_time, vertline, recmat)
 
-            #  Calculations for sequential RQA
-            elif self.sparse_rqa and self.metric == "supremum":
+            elif self.metric == "supremum":
                 #  Get embedding
                 embedding = self.embedding
                 #  Get time series dimension
@@ -1117,7 +1099,7 @@ class RecurrencePlot:
             self._vertline_dist = vertline
             self._vertline_dist_cached = True
 
-            return self._vertline_dist
+        return self._vertline_dist
 
     def resample_vertline_dist(self, M):
         """
@@ -1182,11 +1164,7 @@ class RecurrencePlot:
         :return number: the laminarity :math:`LAM`.
         """
         #  Use resampled distribution of vertical lines if provided
-        if resampled_dist is None:
-            vertline = self.vertline_dist()
-        else:
-            vertline = resampled_dist
-
+        vertline = self.vertline_dist() if resampled_dist is None else resampled_dist
         n_time = self.N
 
         #  Number of recurrence points that form vertical structures (of at
@@ -1213,11 +1191,7 @@ class RecurrencePlot:
         :return number: the trapping time :math:`TT`.
         """
         #  Use resampled distribution of vertical lines if provided
-        if resampled_dist is None:
-            vertline = self.vertline_dist()
-        else:
-            vertline = resampled_dist
-
+        vertline = self.vertline_dist() if resampled_dist is None else resampled_dist
         n_time = self.N
 
         #  Number of recurrence points that form vertical structures (of at
@@ -1250,11 +1224,7 @@ class RecurrencePlot:
         :return number: the vertical line-based entropy.
         """
         #  Use resampled distribution of vertical lines if provided
-        if resampled_dist is None:
-            vertline = self.vertline_dist()
-        else:
-            vertline = resampled_dist
-
+        vertline = self.vertline_dist() if resampled_dist is None else resampled_dist
         #  Creates a reduced array of the values (not 0) of the vertical line
         #  length (langer than v_min)
         vertline = vertline[v_min:]

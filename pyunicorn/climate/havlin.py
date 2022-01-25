@@ -112,10 +112,7 @@ class HavlinClimateNetwork(ClimateNetwork):
         """
         Return a string version of the instance of HavlinClimateNetwork.
         """
-        return (f'HavlinClimateNetwork:\n'
-                '{ClimateNetwork.__str__(self)}\n'
-                'Maximum delay used for correlation strength estimation: '
-                '{self.get_max_delay()}')
+        return 'HavlinClimateNetwork:\n{ClimateNetwork.__str__(self)}\nMaximum delay used for correlation strength estimation: {self.get_max_delay()}'
 
     def clear_cache(self, irreversible=False):
         """
@@ -184,9 +181,8 @@ class HavlinClimateNetwork(ClimateNetwork):
 
         for i in range(N):
             # Update progress bar every 10 steps
-            if self.silence_level <= 1:
-                if (i % 10) == 0:
-                    progress.update(i)
+            if self.silence_level <= 1 and (i % 10) == 0:
+                progress.update(i)
 
             #  Calculate the cross correlation function of node i to all other
             #  nodes which is not normalized yet.

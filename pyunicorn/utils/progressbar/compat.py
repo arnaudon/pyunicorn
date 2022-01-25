@@ -40,6 +40,4 @@ try:
   any
 except NameError:
    def any(iterator):
-      for item in iterator:
-         if item: return True
-      return False
+     return any(iterator)

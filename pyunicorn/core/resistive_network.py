@@ -335,11 +335,7 @@ class ResNetwork(GeoNetwork):
         # to csc_matrix ( Compressed Sparse Column) later
 
         # complex number support
-        if self.flagComplex:
-            dtype = complex
-        else:
-            dtype = float
-
+        dtype = complex if self.flagComplex else float
         self.sparse_Adm = sparse.lil_matrix((self.N, self.N), dtype=dtype)
 
         # get the edges
@@ -556,11 +552,7 @@ class ResNetwork(GeoNetwork):
             for j in range(self.N):
                 for k in range(self.N):
                     dummy += admittance[i][j]*admittance[i][k]*admittance[j][k]
-            if d[i] == 1:
-                ac[i] = 0
-            else:
-                ac[i] = dummy/(ad[i] * (d[i]-1))
-
+            ac[i] = 0 if d[i] == 1 else dummy/(ad[i] * (d[i]-1))
         # return
         return ac
 
@@ -609,11 +601,7 @@ class ResNetwork(GeoNetwork):
         """
         # return def for self-loop
         if a == b:
-            if self.flagComplex:
-                return complex(0.0)
-            else:
-                return float(0.0)
-
+            return complex(0.0) if self.flagComplex else float(0.0)
         # Get pseudoinverse of the Laplacian
         R = self.get_R()
 
@@ -671,14 +659,10 @@ class ResNetwork(GeoNetwork):
         14.444
         """
         # try to use pre-computed values
-        if self._effective_resistances is not None:
-            diameter = np.max(self._effective_resistances)
-        else:
+        if self._effective_resistances is None:
             print("Re-computing all effective resistances")
             self.average_effective_resistance()
-            diameter = np.max(self._effective_resistances)
-
-        return diameter
+        return np.max(self._effective_resistances)
 
     def effective_resistance_closeness_centrality(self, a):
         """
